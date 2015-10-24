@@ -15,7 +15,7 @@
 # $ wget -O /dev/null https://$HOST:$PORT/
 
 from flask import Flask, request
-from .botLogic import BotLogic
+from botLogic import BotLogic
 
 import telegram
 
@@ -50,6 +50,9 @@ def webhook():
     if '/trtoen' in message:
         text_to_translate = message[8:]
         logic.translate_to_en(text_to_translate)
+
+    if '/whattime' == message:
+        logic.what_time()
 
     return 'OK'
 
