@@ -14,9 +14,11 @@
 # You can test SSL handshake running this script and trying to connect using wget:
 # $ wget -O /dev/null https://$HOST:$PORT/
 
+# TODO: Implement logger
+
 from flask import Flask, request
 from botLogic import BotLogic
-
+from db import DatabaseWorker
 import telegram
 
 # CONFIG
@@ -29,6 +31,7 @@ CERT_KEY = '/etc/ssl/crt/server.key'
 bot = telegram.Bot(TOKEN)
 app = Flask(__name__)
 context = (CERT, CERT_KEY)
+db = DatabaseWorker()
 
 @app.route('/')
 def hello():
@@ -39,6 +42,8 @@ def webhook():
     update = telegram.update.Update.de_json(request.get_json(force=True))
     chat_id = update.message.chat.id
     message = update.message.text
+    user = update.message.from_user
+    db.add_user(user)
     logic = BotLogic(bot, message, chat_id)
 
     if '/start' == message or '/help' == message:

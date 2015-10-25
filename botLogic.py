@@ -31,7 +31,9 @@ class BotLogic:
         urtime = "ADVENTURE TIME!"
         self.reply_text(urtime)
         stick = "BQADAgADeAcAAlOx9wOjY2jpAAHq9DUC"
-        self.bot.sendSticker(chat_id=self.chat_id, stick)
+        self.bot.sendSticker(self.chat_id, stick)
+
+
 
 
 
