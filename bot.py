@@ -20,6 +20,7 @@ from flask import Flask, request
 from botLogic import BotLogic
 from db import DatabaseWorker
 import telegram
+import sqlite3
 
 # CONFIG
 TOKEN    = '156292358:AAEPeTrjulpt5IrNwUi5kKQ-bhsVkOTcMmo'
@@ -31,7 +32,11 @@ CERT_KEY = '/etc/ssl/crt/server.key'
 bot = telegram.Bot(TOKEN)
 app = Flask(__name__)
 context = (CERT, CERT_KEY)
-db = DatabaseWorker()
+conn = sqlite3.connect("jeeves.db")
+with conn:
+    cur = conn.cursor()
+    cur.execute("CREATE TABLE IF NOT EXISTS users"
+                "(id TEXT, first_name TEXT, last_name TEXT, username TEXT, is_friend TEXT)")
 
 @app.route('/')
 def hello():
@@ -43,7 +48,16 @@ def webhook():
     chat_id = update.message.chat.id
     message = update.message.text
     user = update.message.from_user
-    db.add_user(user)
+    conn_hook = sqlite3.connect("jeeves.db")
+    with conn_hook:
+        cur_hook = conn_hook.cursor()
+        cur_hook.execute("SELECT * FROM users WHERE id = ?", (user.id, ))
+        if cur_hook.rowcount > 0:
+            pass  # The user is already in the database
+        else:
+            cur_hook.execute("INSERT INTO users VALUES(?, ?, ?, ?, ?)",
+                             (user.id, user.first_name, user.last_name, user.username, "False"))
+
     logic = BotLogic(bot, message, chat_id)
 
     if '/start' == message or '/help' == message:

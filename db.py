@@ -8,7 +8,7 @@ class DatabaseWorker:
         self.conn = sqlite3.connect('jeeves.db')
         self.cur = self.conn.cursor()
         self.cur.execute("CREATE TABLE IF NOT EXISTS users"
-                         "(id TEXT, first_name TEXT, last_name TEXT, username TEXT, is_friend TEXT")
+                         "(id TEXT, first_name TEXT, last_name TEXT, username TEXT, is_friend TEXT)")
 
     def add_user(self, user: telegram.User):
         self.cur.execute("SELECT * FROM users WHERE id = ?", (user.id, ))
