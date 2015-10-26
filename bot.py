@@ -57,10 +57,10 @@ def webhook():
             exist = cur_hook.fetchone()
             if exist is None:
                 cur_hook.execute("INSERT INTO users VALUES(?, ?, ?, ?, ?)",
-                                 (user.id, user.first_name, user.last_name, user.username, "False"))
-                logging.info("Adding user " + user.id + " with username " + user.username + " to the database")
+                                 (str(user.id), user.first_name, user.last_name, user.username, "False"))
+                logging.info("Adding user " + str(user.id) + " with username " + user.username + " to the database")
             else:
-                logging.info("User with id " + user.id + " and username " + user.username + " already exists")
+                logging.info("User with id " + str(user.id) + " and username " + user.username + " already exists")
 
         logic = BotLogic(bot, message, chat_id)
 
