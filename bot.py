@@ -21,6 +21,7 @@ from botLogic import BotLogic
 from db import DatabaseWorker
 import telegram
 import sqlite3
+import logging
 
 # CONFIG
 TOKEN    = '156292358:AAEPeTrjulpt5IrNwUi5kKQ-bhsVkOTcMmo'
@@ -28,7 +29,7 @@ HOST     = 'huhuholic.info' # Same FQDN used when generating SSL Cert
 PORT     = 8443
 CERT     = '/etc/ssl/crt/server.crt'
 CERT_KEY = '/etc/ssl/crt/server.key'
-
+logging.basicConfig(filename='jeeves.log', level=logging.DEBUG)
 bot = telegram.Bot(TOKEN)
 app = Flask(__name__)
 context = (CERT, CERT_KEY)
@@ -44,36 +45,40 @@ def hello():
 
 @app.route('/' + TOKEN, methods=['POST'])
 def webhook():
-    update = telegram.update.Update.de_json(request.get_json(force=True))
-    chat_id = update.message.chat.id
-    message = update.message.text
-    user = update.message.from_user
-    conn_hook = sqlite3.connect("jeeves.db")
-    with conn_hook:
-        cur_hook = conn_hook.cursor()
-        cur_hook.execute("SELECT * FROM users WHERE id = ?", (user.id, ))
-        if cur_hook.rowcount > 0:
-            pass  # The user is already in the database
-        else:
-            cur_hook.execute("INSERT INTO users VALUES(?, ?, ?, ?, ?)",
-                             (user.id, user.first_name, user.last_name, user.username, "False"))
+    try:
+        update = telegram.update.Update.de_json(request.get_json(force=True))
+        chat_id = update.message.chat.id
+        message = update.message.text
+        user = update.message.from_user
+        conn_hook = sqlite3.connect("jeeves.db")
+        with conn_hook:
+            cur_hook = conn_hook.cursor()
+            cur_hook.execute("SELECT * FROM users WHERE id = ?", (user.id, ))
+            if cur_hook.rowcount > 0:
+                pass  # The user is already in the database
+            else:
+                cur_hook.execute("INSERT INTO users VALUES(?, ?, ?, ?, ?)",
+                                 (user.id, user.first_name, user.last_name, user.username, "False"))
 
-    logic = BotLogic(bot, message, chat_id)
+        logic = BotLogic(bot, message, chat_id)
 
-    if '/start' == message or '/help' == message:
-        logic.start_help()
+        if '/start' == message or '/help' == message:
+            logic.start_help()
 
-    if '/time' == message:
-        logic.get_time()
+        if '/time' == message:
+            logic.get_time()
 
-    if '/trtoen' in message:
-        text_to_translate = message[8:]
-        logic.translate_to_en(text_to_translate)
+        if '/trtoen' in message:
+            text_to_translate = message[8:]
+            logic.translate_to_en(text_to_translate)
 
-    if '/whattime' == message:
-        logic.what_time()
+        if '/whattime' == message:
+            logic.what_time()
 
-    return 'OK'
+        return 'OK'
+    except Exception as ex:
+        logging.exception("Exception raised, ", ex.args, ex.__traceback__)
+        print(ex.args, ex.__traceback__)
 
 
 def setWebhook():
