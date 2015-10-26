@@ -53,12 +53,14 @@ def webhook():
         conn_hook = sqlite3.connect("jeeves.db")
         with conn_hook:
             cur_hook = conn_hook.cursor()
-            cur_hook.execute("SELECT * FROM users WHERE id = ?", (user.id, ))
-            if cur_hook.rowcount > 0:
-                pass  # The user is already in the database
-            else:
+            cur_hook.execute("SELECT COUNT(*) FROM users WHERE id = ?", (user.id, ))
+            exist = cur_hook.fetchone()
+            if exist is None:
                 cur_hook.execute("INSERT INTO users VALUES(?, ?, ?, ?, ?)",
                                  (user.id, user.first_name, user.last_name, user.username, "False"))
+                logging.info("Adding user " + user.id + " with username " + user.username + " to the database")
+            else:
+                logging.info("User with id " + user.id + " and username " + user.username + " already exists")
 
         logic = BotLogic(bot, message, chat_id)
 
